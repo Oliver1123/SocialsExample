@@ -1,7 +1,5 @@
 package com.example.oliver.socialsexample;
 
-
-
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -21,17 +19,36 @@ import com.facebook.appevents.AppEventsLogger;
 
 public class MainActivity extends AppCompatActivity {
     private FragmentTransaction fTrans;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d("tag", "MainActivity onCreate");
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
+        FacebookSdk.sdkInitialize(getApplicationContext(), new FacebookSdk.InitializeCallback() {
+            @Override
+            public void onInitialized() {
+                Log.d("tag", "MainActivity onCreate sdk initialized");
+                if (isSessionOpenFacebook()) {
+
+                    GraphRequest infoRequest = FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
+                        @Override
+                        public void onCompleted(UserProfile _profile) {
+                            showUserInfo(UserInfoFragment.FACEBOOK_ID, _profile);
+                        }
+                    });
+                    infoRequest.executeAsync();
+                }
+
+            }
+        });
 
         Fragment mainFragment = new MainFragment();
         fTrans = getSupportFragmentManager().beginTransaction();
         fTrans.add(R.id.fragment_container, mainFragment, "MainFragment");
         fTrans.commit();
+
     }
 
     @Override
@@ -39,18 +56,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         AppEventsLogger.activateApp(this);
-        Log.d("tag", "MainActivity onResume");
-        if (isSessionOpenFacebook()) {
-
-            GraphRequest infoRequest = FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
-                @Override
-                public void onCompleted(UserProfile _profile) {
-                    showUserInfo(UserInfoFragment.FACEBOOK_ID, _profile);
-                }
-            });
-            infoRequest.executeAsync();
-        }
-
     }
 
     private void showUserInfo(int _id, UserProfile _profile) {
