@@ -1,34 +1,56 @@
 package com.example.oliver.socialsexample.fragments;
 
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.R;
 import com.example.oliver.socialsexample.models.UserProfile;
+import com.example.oliver.socialsexample.requests.FacebookRequests;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.share.ShareApi;
+import com.facebook.share.internal.ShareFeedContent;
+import com.facebook.share.model.ShareContent;
+import com.facebook.share.model.ShareOpenGraphContent;
+import com.facebook.share.model.SharePhoto;
+import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.widget.ShareDialog;
+import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
+import java.util.Arrays;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class UserInfoFragment extends Fragment {
-    public static final String ARG_SOCIAL_ID = "social_id";
-    public static final String ARG_SOCIAL_USER = "social_user";
+    private static final int SHARE_REQUEST  = 999;
+    private static final int SELECT_PICTURE = 1;
+    private Uri mSelectedImageUri;
 
-    public static final int FACEBOOK_ID = 0;
-    public static final int TWITER_ID   = 1;
-    public static final int GOOGLE_ID   = 2;
-
-    private TextView mUserInfoText;
+    private TextView mUserInfoText, mPhotoPath;
     private ImageView mUserPhoto;
+    private EditText mPostText;
+    private Button mChoosePhoto;
+    //    private ShareButton mShareButton;
+    private Button mShareButton;
+    private int mSocialID;
 
     public UserInfoFragment() {
         // Required empty public constructor
@@ -38,13 +60,44 @@ public class UserInfoFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_user_info, container, false);
-
-        mUserInfoText = (TextView) rootView.findViewById(R.id.tvUserInfo_FUI);
-        mUserPhoto = (ImageView) rootView.findViewById(R.id.ivUserPhoto_FUI);
+        Log.d("tag", "UserInfoFragment onCreateView");
+        initUI(rootView);
 
         return rootView;
+    }
+
+    private void initUI(View _rootView) {
+        Log.d("tag", "permissions: " + AccessToken.getCurrentAccessToken().getPermissions());
+
+        mUserInfoText = (TextView) _rootView.findViewById(R.id.tvUserInfo_FUI);
+        mUserPhoto = (ImageView) _rootView.findViewById(R.id.ivUserPhoto_FUI);
+
+        mPhotoPath = (TextView) _rootView.findViewById(R.id.tvPhotoPath_FUI);
+        mPostText = (EditText) _rootView.findViewById(R.id.etPostText_FUI);
+        mShareButton = (Button) _rootView.findViewById(R.id.btnShare_FUI);
+
+        mShareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message = mPostText.getText().toString();
+                switch (mSocialID) {
+                    case Constants.FACEBOOK_ID:
+                        facebookShare(message, mSelectedImageUri);
+                }
+            }
+        });
+        mChoosePhoto = (Button) _rootView.findViewById(R.id.btnChoosePhoto_FUI);
+        mChoosePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent,
+                        "Select Picture"), SELECT_PICTURE);
+            }
+        });
     }
 
     @Override
@@ -53,17 +106,54 @@ public class UserInfoFragment extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            int socialID = args.getInt(ARG_SOCIAL_ID);
-            switch (socialID) {
-                case FACEBOOK_ID:
-                    facebookAccess((UserProfile)args.getParcelable(ARG_SOCIAL_USER));
+            mSocialID = args.getInt(Constants.ARG_SOCIAL_ID);
+            switch (mSocialID) {
+                case Constants.FACEBOOK_ID:
+                    facebookAccess((UserProfile)args.getParcelable(Constants.ARG_SOCIAL_USER));
                     break;
             }
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("tag", "UserInfoFragment onActivityResult data: " + data.getExtras());
+        switch (requestCode) {
+            case SELECT_PICTURE:
+                if (resultCode == Activity.RESULT_OK) {
+                    mSelectedImageUri = data.getData();
+                    mPhotoPath.setText(mSelectedImageUri.getLastPathSegment());
+                    mPhotoPath.setVisibility(View.VISIBLE);
+                    Log.d("tag", "onActivityResult pickImage data:" + mSelectedImageUri);
+                }
+                break;
+        }
+    }
+
     private void facebookAccess(UserProfile _userProfile) {
         mUserInfoText.setText("Access from facebook \n" + _userProfile);
+        Picasso.with(getActivity()).load(_userProfile.getPictureUrl()).into(mUserPhoto);
+    }
 
+    private void facebookShare(String message, Uri photo){
+        if (photo != null) {
+            SharePhoto sharePhoto = new SharePhoto.Builder()
+                    .setImageUrl(photo)
+                    .build();
+            SharePhotoContent content = new SharePhotoContent.Builder()
+                    .addPhoto(sharePhoto)
+                    .build();
+
+            ShareDialog.show(getActivity(), content);
+        }
+        //////////////////////////////
+//                FacebookRequests.postRequest(AccessToken.getCurrentAccessToken(), message, new GraphRequest.Callback() {
+//                    @Override
+//                    public void onCompleted(GraphResponse _graphResponse) {
+//                        Log.d("tag", "postRequest onCompleted response: " + _graphResponse);
+//                    }
+//                })
+//                        .executeAsync();
     }
 }

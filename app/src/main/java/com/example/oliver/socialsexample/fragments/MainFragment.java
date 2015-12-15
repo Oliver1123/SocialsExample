@@ -1,5 +1,6 @@
 package com.example.oliver.socialsexample.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,7 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.R;
+import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -24,10 +27,20 @@ import java.util.Arrays;
 public class MainFragment extends Fragment{
     private LoginButton mLoginButton;
     private CallbackManager callbackManager;
+    private SocialsLoginListener mLoginListener;
 
     public MainFragment() {
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            mLoginListener = (SocialsLoginListener) context;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,6 +60,7 @@ public class MainFragment extends Fragment{
             public void onSuccess(LoginResult loginResult) {
                 // App code
                 Log.d("tag", "MainFragment mLoginButton onSuccess token: " + AccessToken.getCurrentAccessToken().getToken());
+                mLoginListener.onAccessSuccess(Constants.FACEBOOK_ID);
 
             }
 

@@ -58,8 +58,8 @@ public class UserProfile implements Parcelable {
     public String toString() {
         return "Name: " + mName +
                 "\nEmail: " + mEmail +
-                "\nBirth Date: " + mBirthDate +
-                "\nPicture: " + mPictureUrl;
+                "\nBirth Date: " + mBirthDate;
+//                "\nPicture: " + mPictureUrl;
     }
 
     @Override

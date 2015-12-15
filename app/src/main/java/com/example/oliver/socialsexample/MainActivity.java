@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.example.oliver.socialsexample.fragments.MainFragment;
 import com.example.oliver.socialsexample.fragments.UserInfoFragment;
+import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
 import com.example.oliver.socialsexample.interfaces.UserProfileCallback;
 import com.example.oliver.socialsexample.models.UserProfile;
 import com.example.oliver.socialsexample.requests.FacebookRequests;
@@ -17,8 +18,9 @@ import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.appevents.AppEventsLogger;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SocialsLoginListener {
     private FragmentTransaction fTrans;
+//    private GraphRequest mFacebookUserInfoRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,24 +32,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInitialized() {
                 Log.d("tag", "MainActivity onCreate sdk initialized");
-                if (isSessionOpenFacebook()) {
-
-                    GraphRequest infoRequest = FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
+                if (AccessToken.getCurrentAccessToken() != null) {
+                    FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
                         @Override
                         public void onCompleted(UserProfile _profile) {
-                            showUserInfo(UserInfoFragment.FACEBOOK_ID, _profile);
+                            showUserInfo(Constants.FACEBOOK_ID, _profile);
                         }
-                    });
-                    infoRequest.executeAsync();
+                    }).executeAsync();
                 }
 
             }
         });
 
+        requestsInit();
+
         Fragment mainFragment = new MainFragment();
         fTrans = getSupportFragmentManager().beginTransaction();
         fTrans.add(R.id.fragment_container, mainFragment, "MainFragment");
         fTrans.commit();
+
+    }
+
+    private void requestsInit() {
 
     }
 
@@ -60,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showUserInfo(int _id, UserProfile _profile) {
         Bundle args = new Bundle();
-        args.putInt(UserInfoFragment.ARG_SOCIAL_ID, _id);
-        args.putParcelable(UserInfoFragment.ARG_SOCIAL_USER, _profile);
+        args.putInt(Constants.ARG_SOCIAL_ID, _id);
+        args.putParcelable(Constants.ARG_SOCIAL_USER, _profile);
 
         Fragment userInfoFragment = new UserInfoFragment();
         userInfoFragment.setArguments(args);
@@ -81,10 +87,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "MainActivity onResult");
+        Log.d("tag", "MainActivity onResult request: " + requestCode + " result: " + resultCode + " data: " + data);
     }
 
-    public boolean isSessionOpenFacebook() {
-        return (AccessToken.getCurrentAccessToken() != null);
+    @Override
+    public void onAccessSuccess(int id) {
+        Log.d("tag", "MainActivity onAccessSuccess id: " + id);
+        switch (id) {
+            case Constants.FACEBOOK_ID:
+                FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
+                    @Override
+                    public void onCompleted(UserProfile _profile) {
+                        showUserInfo(Constants.FACEBOOK_ID, _profile);
+                    }
+                }).executeAsync();
+                break;
+        }
     }
 }

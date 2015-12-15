@@ -1,5 +1,6 @@
 package com.example.oliver.socialsexample.requests;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -8,6 +9,7 @@ import com.example.oliver.socialsexample.models.UserProfile;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,6 +45,17 @@ public class FacebookRequests {
         return request;
     }
 
+    public static GraphRequest postRequest(AccessToken _accessToken, String _message, GraphRequest.Callback _callback) {
+        Bundle params = new Bundle();
+        params.putString("message", _message);
+
+        return new GraphRequest(
+                _accessToken,
+                "/me/feed",
+                params,
+                HttpMethod.POST, _callback
+        );
+    }
 
 
 }
