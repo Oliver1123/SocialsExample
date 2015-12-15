@@ -16,24 +16,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.oliver.socialsexample.Constants;
+import com.example.oliver.socialsexample.MainActivity;
 import com.example.oliver.socialsexample.R;
 import com.example.oliver.socialsexample.models.UserProfile;
-import com.example.oliver.socialsexample.requests.FacebookRequests;
 import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
-import com.facebook.share.ShareApi;
-import com.facebook.share.internal.ShareFeedContent;
-import com.facebook.share.model.ShareContent;
-import com.facebook.share.model.ShareOpenGraphContent;
+import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.squareup.picasso.Picasso;
-
-import java.util.Arrays;
 
 
 /**
@@ -48,7 +40,6 @@ public class UserInfoFragment extends Fragment {
     private ImageView mUserPhoto;
     private EditText mPostText;
     private Button mChoosePhoto;
-    //    private ShareButton mShareButton;
     private Button mShareButton;
     private int mSocialID;
 
@@ -96,6 +87,15 @@ public class UserInfoFragment extends Fragment {
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(Intent.createChooser(intent,
                         "Select Picture"), SELECT_PICTURE);
+            }
+        });
+
+        LoginButton loginButton = ((LoginButton) _rootView.findViewById(R.id.btnFacebookLogin_FUI));
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LoginManager.getInstance().logOut();
+                ((MainActivity)getActivity()).showLoginFragment();
             }
         });
     }

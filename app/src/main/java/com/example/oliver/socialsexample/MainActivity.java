@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.oliver.socialsexample.fragments.MainFragment;
+import com.example.oliver.socialsexample.fragments.LoginFragment;
 import com.example.oliver.socialsexample.fragments.UserInfoFragment;
 import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
 import com.example.oliver.socialsexample.interfaces.UserProfileCallback;
@@ -15,7 +15,6 @@ import com.example.oliver.socialsexample.models.UserProfile;
 import com.example.oliver.socialsexample.requests.FacebookRequests;
 import com.facebook.AccessToken;
 import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
 import com.facebook.appevents.AppEventsLogger;
 
 public class MainActivity extends AppCompatActivity implements SocialsLoginListener {
@@ -46,11 +45,20 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
 
         requestsInit();
 
-        Fragment mainFragment = new MainFragment();
-        fTrans = getSupportFragmentManager().beginTransaction();
-        fTrans.add(R.id.fragment_container, mainFragment, "MainFragment");
-        fTrans.commit();
+        showLoginFragment();
 
+    }
+
+    public void showLoginFragment() {
+        Fragment frag = getSupportFragmentManager().findFragmentByTag("UserInfoFragment");
+        fTrans = getSupportFragmentManager().beginTransaction();
+        Fragment mainFragment = new LoginFragment();
+        if (frag != null) {
+            fTrans.replace(R.id.fragment_container, mainFragment, "LoginFragment");
+        } else {
+            fTrans.add(R.id.fragment_container, mainFragment, "LoginFragment");
+        }
+        fTrans.commit();
     }
 
     private void requestsInit() {

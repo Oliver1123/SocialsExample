@@ -24,12 +24,12 @@ import java.util.Arrays;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainFragment extends Fragment{
+public class LoginFragment extends Fragment{
     private LoginButton mLoginButton;
     private CallbackManager callbackManager;
     private SocialsLoginListener mLoginListener;
 
-    public MainFragment() {
+    public LoginFragment() {
     }
 
     @Override
@@ -59,7 +59,7 @@ public class MainFragment extends Fragment{
             @Override
             public void onSuccess(LoginResult loginResult) {
                 // App code
-                Log.d("tag", "MainFragment mLoginButton onSuccess token: " + AccessToken.getCurrentAccessToken().getToken());
+                Log.d("tag", "LoginFragment mLoginButton onSuccess token: " + AccessToken.getCurrentAccessToken().getToken());
                 mLoginListener.onAccessSuccess(Constants.FACEBOOK_ID);
 
             }
@@ -67,13 +67,13 @@ public class MainFragment extends Fragment{
             @Override
             public void onCancel() {
                 // App code
-                Log.d("tag", "MainFragment mLoginButton onCancel");
+                Log.d("tag", "LoginFragment mLoginButton onCancel");
             }
 
             @Override
             public void onError(FacebookException exception) {
                 // App code
-                Log.d("tag", "MainFragment mLoginButton onError");
+                Log.d("tag", "LoginFragment mLoginButton onError");
             }
         });
         return rootView;
@@ -82,7 +82,7 @@ public class MainFragment extends Fragment{
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "MainFragment onResult");
+        Log.d("tag", "LoginFragment onResult");
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
