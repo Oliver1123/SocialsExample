@@ -1,10 +1,13 @@
 <resources>
-    <string name="app_name">SocialsExample</string>
+    <string name="app_name">Socials Example</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="facebook_app_id">173463636339969</string>
+    <string name="twitter_api_key">HExCGkSpwZtvpy600hEkPKO8L</string>
+    <string name="twitter_api_secret">vr7w3wJxQCJR3p0O8eHkwImr305BXElD9Z3Qpqkses9V6V2JQc</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="choose_photo">Choose Photo</string>
     <string name="share_button">Share</string>
+    <string name="button_logout">Log out</string>
 </resources>

@@ -19,13 +19,14 @@ import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.MainActivity;
 import com.example.oliver.socialsexample.R;
 import com.example.oliver.socialsexample.models.UserProfile;
-import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
 import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.squareup.picasso.Picasso;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 
 /**
@@ -39,8 +40,7 @@ public class UserInfoFragment extends Fragment {
     private TextView mUserInfoText, mPhotoPath;
     private ImageView mUserPhoto;
     private EditText mPostText;
-    private Button mChoosePhoto;
-    private Button mShareButton;
+    private Button mChoosePhotoButton, mShareButton, mLogOutButton;
     private int mSocialID;
 
     public UserInfoFragment() {
@@ -59,8 +59,6 @@ public class UserInfoFragment extends Fragment {
     }
 
     private void initUI(View _rootView) {
-        Log.d("tag", "permissions: " + AccessToken.getCurrentAccessToken().getPermissions());
-
         mUserInfoText = (TextView) _rootView.findViewById(R.id.tvUserInfo_FUI);
         mUserPhoto = (ImageView) _rootView.findViewById(R.id.ivUserPhoto_FUI);
 
@@ -78,8 +76,8 @@ public class UserInfoFragment extends Fragment {
                 }
             }
         });
-        mChoosePhoto = (Button) _rootView.findViewById(R.id.btnChoosePhoto_FUI);
-        mChoosePhoto.setOnClickListener(new View.OnClickListener() {
+        mChoosePhotoButton = (Button) _rootView.findViewById(R.id.btnChoosePhoto_FUI);
+        mChoosePhotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
@@ -90,12 +88,22 @@ public class UserInfoFragment extends Fragment {
             }
         });
 
-        LoginButton loginButton = ((LoginButton) _rootView.findViewById(R.id.btnFacebookLogin_FUI));
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        mLogOutButton = (Button) _rootView.findViewById(R.id.btnLogOut_FUI);
+        mLogOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginManager.getInstance().logOut();
-                ((MainActivity)getActivity()).showLoginFragment();
+                switch (mSocialID) {
+                    case Constants.FACEBOOK_ID:
+                        Log.d("tag", "UserInfoFragment Facebook logout");
+                        LoginManager.getInstance().logOut();
+                        ((MainActivity) getActivity()).showLoginFragment();
+                        break;
+                    case Constants.TWITER_ID:
+                        Log.d("tag", "UserInfoFragment Twitter logout");
+                        Twitter.getSessionManager().clearActiveSession();
+                        ((MainActivity) getActivity()).showLoginFragment();
+                        break;
+                }
             }
         });
     }
@@ -111,8 +119,16 @@ public class UserInfoFragment extends Fragment {
                 case Constants.FACEBOOK_ID:
                     facebookAccess((UserProfile)args.getParcelable(Constants.ARG_SOCIAL_USER));
                     break;
+                case Constants.TWITER_ID:
+                    twitterAccess((UserProfile) args.getParcelable(Constants.ARG_SOCIAL_USER));
+                    break;
             }
         }
+    }
+
+    private void twitterAccess(UserProfile _userProfile) {
+        mUserInfoText.setText("Access from twitter \n" + _userProfile);
+        Picasso.with(getActivity()).load(_userProfile.getPictureUrl()).into(mUserPhoto);
     }
 
     @Override

@@ -10,12 +10,18 @@
               android:orientation="vertical">
 
     <com.facebook.login.widget.LoginButton
-        android:id="@+id/btnFacebookLogin_FM"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnFacebookLogin_FL"
+        android:layout_width="210dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="30dp"
         />
+
+    <com.twitter.sdk.android.core.identity.TwitterLoginButton
+        android:id="@+id/btnTwitterLogin_FL"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.R;
@@ -18,6 +19,14 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterAuthToken;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
+import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 import java.util.Arrays;
 
@@ -25,7 +34,8 @@ import java.util.Arrays;
  * A placeholder fragment containing a simple view.
  */
 public class LoginFragment extends Fragment{
-    private LoginButton mLoginButton;
+    private LoginButton mFacebookLoginButton;
+    private TwitterLoginButton mTwitterLoginButton;
     private CallbackManager callbackManager;
     private SocialsLoginListener mLoginListener;
 
@@ -45,44 +55,66 @@ public class LoginFragment extends Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        Log.d("tag", "LoginFragment onCreateView");
+        View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
+        facebookInit(rootView);
+
+        twitterInit(rootView);
+
+        return rootView;
+    }
+
+    private void twitterInit(View _rootView) {
+        mTwitterLoginButton = (TwitterLoginButton) _rootView.findViewById(R.id.btnTwitterLogin_FL);
+        mTwitterLoginButton.setCallback(new Callback<TwitterSession>() {
+            @Override
+            public void success(Result<TwitterSession> result) {
+                Log.d("tag", "LoginFragment twitterInit login success");
+                mLoginListener.onAccessSuccess(Constants.TWITER_ID);
+            }
+
+            @Override
+            public void failure(TwitterException exception) {
+                Log.d("tag", "LoginFragment twitterInit  login failure", exception);
+            }
+        });
+    }
+
+    private void facebookInit(View _rootView) {
         callbackManager = CallbackManager.Factory.create();
 
-        mLoginButton = (LoginButton) rootView.findViewById(R.id.btnFacebookLogin_FM);
+        mFacebookLoginButton = (LoginButton) _rootView.findViewById(R.id.btnFacebookLogin_FL);
 
-        mLoginButton.setFragment(this);
-        mLoginButton.setReadPermissions(Arrays.asList("email", "user_birthday"));
+        mFacebookLoginButton.setFragment(this);
+        mFacebookLoginButton.setReadPermissions(Arrays.asList("email", "user_birthday"));
 
         // Callback registration
-        mLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        mFacebookLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                // App code
-                Log.d("tag", "LoginFragment mLoginButton onSuccess token: " + AccessToken.getCurrentAccessToken().getToken());
+                Log.d("tag", "LoginFragment mFacebookLoginButton onSuccess token: " + AccessToken.getCurrentAccessToken().getToken());
                 mLoginListener.onAccessSuccess(Constants.FACEBOOK_ID);
 
             }
 
             @Override
             public void onCancel() {
-                // App code
-                Log.d("tag", "LoginFragment mLoginButton onCancel");
+                Log.d("tag", "LoginFragment mFacebookLoginButton onCancel");
             }
 
             @Override
             public void onError(FacebookException exception) {
-                // App code
-                Log.d("tag", "LoginFragment mLoginButton onError");
+                Log.d("tag", "LoginFragment mFacebookLoginButton onError");
             }
         });
-        return rootView;
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "LoginFragment onResult");
+        Log.d("tag", "LoginFragment onResult request: " + requestCode + " result: " + resultCode + " data: " + data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+        mTwitterLoginButton.onActivityResult(requestCode, resultCode, data);
     }
 }

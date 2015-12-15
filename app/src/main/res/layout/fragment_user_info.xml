@@ -72,12 +72,10 @@
         android:id="@+id/btnShare_FUI"
         android:text="@string/share_button"/>
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/btnFacebookLogin_FUI"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"/>
+   <Button
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:id="@+id/btnLogOut_FUI"
+       android:text="@string/button_logout"/>
 
 </LinearLayout>

@@ -16,8 +16,18 @@ import com.example.oliver.socialsexample.requests.FacebookRequests;
 import com.facebook.AccessToken;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterException;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
+
+import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends AppCompatActivity implements SocialsLoginListener {
+
+
     private FragmentTransaction fTrans;
 //    private GraphRequest mFacebookUserInfoRequest;
 
@@ -27,10 +37,26 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         setContentView(R.layout.activity_main);
         Log.d("tag", "MainActivity onCreate");
 
+        showLoginFragment();
+
+        facebookInitialize();
+        twitterInitialize();
+    }
+
+    private void twitterInitialize() {
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(getString(R.string.twitter_api_key), getString(R.string.twitter_api_secret));
+        Fabric.with(this, new Twitter(authConfig));
+        Log.d("tag", "MainActivity twitterInitialize session: " + Twitter.getSessionManager().getActiveSession());
+        if (Twitter.getSessionManager().getActiveSession() != null) {
+            showUserInfo(Constants.TWITER_ID, new UserProfile("name", "email", "date", null));
+        }
+    }
+
+    private void facebookInitialize() {
         FacebookSdk.sdkInitialize(getApplicationContext(), new FacebookSdk.InitializeCallback() {
             @Override
             public void onInitialized() {
-                Log.d("tag", "MainActivity onCreate sdk initialized");
+                Log.d("tag", "MainActivity facebook sdk initialize");
                 if (AccessToken.getCurrentAccessToken() != null) {
                     FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
                         @Override
@@ -42,15 +68,11 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
 
             }
         });
-
-        requestsInit();
-
-        showLoginFragment();
-
     }
 
     public void showLoginFragment() {
         Fragment frag = getSupportFragmentManager().findFragmentByTag("UserInfoFragment");
+
         fTrans = getSupportFragmentManager().beginTransaction();
         Fragment mainFragment = new LoginFragment();
         if (frag != null) {
@@ -61,9 +83,6 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         fTrans.commit();
     }
 
-    private void requestsInit() {
-
-    }
 
     @Override
     protected void onResume() {
@@ -95,7 +114,11 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "MainActivity onResult request: " + requestCode + " result: " + resultCode + " data: " + data);
+        Log.d("tag", "MainActivity onResult request: " + requestCode + " result: " + resultCode + " data: " + data.getExtras());
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("LoginFragment");
+        if (fragment != null) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -109,6 +132,24 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
                         showUserInfo(Constants.FACEBOOK_ID, _profile);
                     }
                 }).executeAsync();
+                break;
+            case Constants.TWITER_ID:
+//                TwitterAuthClient authClient = new TwitterAuthClient();
+//                authClient.requestEmail(Twitter.getSessionManager().getActiveSession(), new Callback<String>() {
+//                    @Override
+//                    public void success(Result<String> result) {
+//                         Do something with the result, which provides the email address
+//                        Log.d("tag", "getEmail " + result.data);
+//
+//                    }
+//
+//                    @Override
+//                    public void failure(TwitterException exception) {
+//                         Do something on failure
+//                        Log.d("tag", "getEmail failure ", exception);
+//                    }
+//                });
+                showUserInfo(Constants.TWITER_ID, new UserProfile("twitterName", "email", "date", null));
                 break;
         }
     }
