@@ -26,8 +26,8 @@ public class FacebookRequests {
                 UserProfile userProfile = null;
                 try {
                     String name =  _jsonObject.getString("name");
-                    String email = _jsonObject.has("email") ? _jsonObject.getString("email") : "unknown";
-                    String birthday = _jsonObject.has("birthday") ? _jsonObject.getString("birthday") : "unknown";
+                    String email = _jsonObject.has("email") ? _jsonObject.getString("email") : null;
+                    String birthday = _jsonObject.has("birthday") ? _jsonObject.getString("birthday") : null;
                     String pictureUrl = _jsonObject.getJSONObject("picture").
                             getJSONObject("data").getString("url");
                     userProfile = new UserProfile(name, email, birthday, pictureUrl);

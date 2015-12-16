@@ -42,4 +42,8 @@ dependencies {
     compile('com.twitter.sdk.android:twitter:1.11.0@aar') {
         transitive = true;
     }
+    compile 'com.github.scribejava:scribejava:2.0'
+    compile 'com.github.scribejava:scribejava-apis:2.0'
+    compile 'com.github.scribejava:scribejava-core:2.0'
+    compile 'org.twitter4j:twitter4j-core:4.0.4'
 }

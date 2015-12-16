@@ -3,6 +3,8 @@ package com.example.oliver.socialsexample.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.example.oliver.socialsexample.Constants;
+
 /**
  * Created by oliver on 11.12.15.
  */
@@ -23,7 +25,7 @@ public class UserProfile implements Parcelable {
     }
 
     public String getName() {
-        return mName;
+        return mName == null ? Constants.NO_VALUE : mName;
     }
 
     public void setName(String _name) {
@@ -31,7 +33,7 @@ public class UserProfile implements Parcelable {
     }
 
     public String getEmail() {
-        return mEmail;
+        return mEmail == null ? Constants.NO_VALUE : mEmail;
     }
 
     public void setEmail(String _email) {
@@ -39,7 +41,7 @@ public class UserProfile implements Parcelable {
     }
 
     public String getBirthDate() {
-        return mBirthDate;
+        return mBirthDate == null ? Constants.NO_VALUE : mBirthDate;
     }
 
     public void setBirthDate(String _birthDate) {
@@ -56,10 +58,9 @@ public class UserProfile implements Parcelable {
 
     @Override
     public String toString() {
-        return "Name: " + mName +
-                "\nEmail: " + mEmail +
-                "\nBirth Date: " + mBirthDate;
-//                "\nPicture: " + mPictureUrl;
+        return "Name: " + getName() +
+                "\nEmail: " + getEmail() +
+                "\nBirth Date: " + getBirthDate();
     }
 
     @Override
