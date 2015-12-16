@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         Fabric.with(this, new Twitter(authConfig));
         Log.d("tag", "MainActivity twitterInitialize session: " + Twitter.getSessionManager().getActiveSession());
         if (Twitter.getSessionManager().getActiveSession() != null) {
-            showUserInfoFragment(Constants.TWITER_ID);
+            showUserInfoFragment(Constants.TWITTER_ID);
         }
     }
 
@@ -114,23 +114,8 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
             case Constants.FACEBOOK_ID:
                 showUserInfoFragment(Constants.FACEBOOK_ID);
                 break;
-            case Constants.TWITER_ID:
-//                TwitterAuthClient authClient = new TwitterAuthClient();
-//                authClient.requestEmail(Twitter.getSessionManager().getActiveSession(), new Callback<String>() {
-//                    @Override
-//                    public void success(Result<String> result) {
-//                         Do something with the result, which provides the email address
-//                        Log.d("tag", "getEmail " + result.data);
-//
-//                    }
-//
-//                    @Override
-//                    public void failure(TwitterException exception) {
-//                         Do something on failure
-//                        Log.d("tag", "getEmail failure ", exception);
-//                    }
-//                });
-                showUserInfoFragment(Constants.TWITER_ID);
+            case Constants.TWITTER_ID:
+                showUserInfoFragment(Constants.TWITTER_ID);
                 break;
         }
     }

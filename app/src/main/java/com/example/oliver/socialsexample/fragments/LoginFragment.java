@@ -67,7 +67,7 @@ public class LoginFragment extends Fragment{
             @Override
             public void success(Result<TwitterSession> result) {
                 Log.d("tag", "LoginFragment twitterInit login success");
-                mLoginListener.onAccessSuccess(Constants.TWITER_ID);
+                mLoginListener.onAccessSuccess(Constants.TWITTER_ID);
             }
 
             @Override

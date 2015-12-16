@@ -4,6 +4,7 @@ package com.example.oliver.socialsexample.fragments;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -28,6 +29,12 @@ import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.tweetcomposer.TweetComposer;
+
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.User;
+import twitter4j.conf.ConfigurationBuilder;
 
 
 /**
@@ -92,7 +99,7 @@ public class UserInfoFragment extends Fragment {
                         LoginManager.getInstance().logOut();
                         ((MainActivity) getActivity()).showLoginFragment();
                         break;
-                    case Constants.TWITER_ID:
+                    case Constants.TWITTER_ID:
                         Log.d("tag", "UserInfoFragment Twitter logout");
                         Twitter.getSessionManager().clearActiveSession();
                         ((MainActivity) getActivity()).showLoginFragment();
@@ -107,6 +114,10 @@ public class UserInfoFragment extends Fragment {
                 switch (mSocialID) {
                     case Constants.FACEBOOK_ID:
                         facebookShare(message, mSelectedImageUri);
+                        break;
+                    case Constants.TWITTER_ID:
+                        twitterShare(message, mSelectedImageUri);
+                        break;
                 }
             }
         });
@@ -123,7 +134,7 @@ public class UserInfoFragment extends Fragment {
                 case Constants.FACEBOOK_ID:
                     loadFacebookUser();
                     break;
-                case Constants.TWITER_ID:
+                case Constants.TWITTER_ID:
                     loadTwitterUser();
                     break;
             }
@@ -152,7 +163,7 @@ public class UserInfoFragment extends Fragment {
             case Constants.FACEBOOK_ID:
                 userInfo = "Access from Facebook\n";
                 break;
-            case Constants.TWITER_ID:
+            case Constants.TWITTER_ID:
                 userInfo = "Access from Twitter\n";
                 break;
             case Constants.GOOGLE_ID:
@@ -185,6 +196,15 @@ public class UserInfoFragment extends Fragment {
 //                        .executeAsync();
     }
 
+    private void twitterShare(String _message, Uri _selectedImageUri) {
+        TweetComposer.Builder builder = new TweetComposer.Builder(getActivity())
+                .text(_message);
+        if (_selectedImageUri != null) {
+            builder.image(_selectedImageUri);
+        }
+        builder.show();
+    }
+
     public void loadFacebookUser() {
         FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
             @Override
@@ -195,6 +215,59 @@ public class UserInfoFragment extends Fragment {
     }
 
     private void loadTwitterUser() {
-        showUserInfo(Constants.TWITER_ID, new UserProfile("name", "email", "date", null));
+        String name = Twitter.getSessionManager().getActiveSession().getUserName();
+        Log.d("tag", "Name: " + name);
+
+//        TwitterAuthClient authClient = new TwitterAuthClient();
+//
+//        TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
+//
+//        authClient.requestEmail(Twitter.getSessionManager().getActiveSession(), new Callback<String>() {
+//            @Override
+//            public void success(Result<String> result) {
+//                Log.d("tag", "getEmail " + result.data);
+//            }
+//
+//            @Override
+//            public void failure(TwitterException exception) {
+//                Log.d("tag", "getEmail failure ", exception);
+//            }
+//        });
+//        showUserInfo(Constants.TWITTER_ID, new UserProfile(name, "email", "date", null));
+
+        twitter4j();
+    }
+    public void twitter4j() {
+        ConfigurationBuilder cb = new ConfigurationBuilder();
+        cb.setDebugEnabled(true)
+                .setOAuthConsumerKey(getString(R.string.twitter_api_key))
+                .setOAuthConsumerSecret(getString(R.string.twitter_api_secret))
+                .setOAuthAccessToken(Twitter.getSessionManager().getActiveSession().getAuthToken().token)
+                .setOAuthAccessTokenSecret(Twitter.getSessionManager().getActiveSession().getAuthToken().secret);
+        TwitterFactory tf = new TwitterFactory(cb.build());
+        final twitter4j.Twitter twitter = tf.getInstance();
+        new TwitterUserLoader().execute(twitter);
+    }
+
+    class TwitterUserLoader extends AsyncTask<twitter4j.Twitter, Void, UserProfile> {
+        @Override
+        protected UserProfile doInBackground(twitter4j.Twitter... params) {
+            try {
+                User user = params[0].verifyCredentials();
+                UserProfile profile = new UserProfile();
+                profile.setPictureUrl(user.getBiggerProfileImageURL());
+                profile.setName(user.getName() + "\nScreen name: @" + user.getScreenName());
+                return  profile;
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(UserProfile result) {
+            super.onPostExecute(result);
+            showUserInfo(Constants.TWITTER_ID, result);
+        }
     }
 }
