@@ -1,27 +1,20 @@
 package com.example.oliver.socialsexample;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.example.oliver.socialsexample.fragments.LoginFragment;
 import com.example.oliver.socialsexample.fragments.UserInfoFragment;
 import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
-import com.example.oliver.socialsexample.interfaces.UserProfileCallback;
-import com.example.oliver.socialsexample.models.UserProfile;
-import com.example.oliver.socialsexample.requests.FacebookRequests;
 import com.facebook.AccessToken;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.twitter.sdk.android.Twitter;
-import com.twitter.sdk.android.core.Callback;
-import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
-import com.twitter.sdk.android.core.TwitterException;
-import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -29,7 +22,6 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
 
 
     private FragmentTransaction fTrans;
-//    private GraphRequest mFacebookUserInfoRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         Fabric.with(this, new Twitter(authConfig));
         Log.d("tag", "MainActivity twitterInitialize session: " + Twitter.getSessionManager().getActiveSession());
         if (Twitter.getSessionManager().getActiveSession() != null) {
-            showUserInfo(Constants.TWITER_ID, new UserProfile("name", "email", "date", null));
+            showUserInfoFragment(Constants.TWITER_ID);
         }
     }
 
@@ -58,12 +50,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
             public void onInitialized() {
                 Log.d("tag", "MainActivity facebook sdk initialize");
                 if (AccessToken.getCurrentAccessToken() != null) {
-                    FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
-                        @Override
-                        public void onCompleted(UserProfile _profile) {
-                            showUserInfo(Constants.FACEBOOK_ID, _profile);
-                        }
-                    }).executeAsync();
+                    showUserInfoFragment(Constants.FACEBOOK_ID);
                 }
 
             }
@@ -91,10 +78,9 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         AppEventsLogger.activateApp(this);
     }
 
-    private void showUserInfo(int _id, UserProfile _profile) {
+    private void showUserInfoFragment(int _socialID) {
         Bundle args = new Bundle();
-        args.putInt(Constants.ARG_SOCIAL_ID, _id);
-        args.putParcelable(Constants.ARG_SOCIAL_USER, _profile);
+        args.putInt(Constants.ARG_SOCIAL_ID, _socialID);
 
         Fragment userInfoFragment = new UserInfoFragment();
         userInfoFragment.setArguments(args);
@@ -126,12 +112,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
         Log.d("tag", "MainActivity onAccessSuccess id: " + id);
         switch (id) {
             case Constants.FACEBOOK_ID:
-                FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
-                    @Override
-                    public void onCompleted(UserProfile _profile) {
-                        showUserInfo(Constants.FACEBOOK_ID, _profile);
-                    }
-                }).executeAsync();
+                showUserInfoFragment(Constants.FACEBOOK_ID);
                 break;
             case Constants.TWITER_ID:
 //                TwitterAuthClient authClient = new TwitterAuthClient();
@@ -149,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
 //                        Log.d("tag", "getEmail failure ", exception);
 //                    }
 //                });
-                showUserInfo(Constants.TWITER_ID, new UserProfile("twitterName", "email", "date", null));
+                showUserInfoFragment(Constants.TWITER_ID);
                 break;
         }
     }

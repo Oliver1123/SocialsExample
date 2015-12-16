@@ -5,7 +5,7 @@ package com.example.oliver.socialsexample;
  */
 public class Constants {
     public static final String ARG_SOCIAL_ID = "social_id";
-    public static final String ARG_SOCIAL_USER = "social_user";
+//    public static final String ARG_SOCIAL_USER = "social_user";
 
     public static final int FACEBOOK_ID = 0;
     public static final int TWITER_ID   = 1;

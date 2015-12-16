@@ -18,22 +18,22 @@ import android.widget.TextView;
 import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.MainActivity;
 import com.example.oliver.socialsexample.R;
+import com.example.oliver.socialsexample.interfaces.UserProfileCallback;
 import com.example.oliver.socialsexample.models.UserProfile;
+import com.example.oliver.socialsexample.requests.FacebookRequests;
+import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
-import com.facebook.login.widget.LoginButton;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.Twitter;
-import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class UserInfoFragment extends Fragment {
-    private static final int SHARE_REQUEST  = 999;
     private static final int SELECT_PICTURE = 1;
     private Uri mSelectedImageUri;
 
@@ -53,8 +53,9 @@ public class UserInfoFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_user_info, container, false);
         Log.d("tag", "UserInfoFragment onCreateView");
-        initUI(rootView);
 
+        initUI(rootView);
+        setUIListeners();
         return rootView;
     }
 
@@ -66,17 +67,12 @@ public class UserInfoFragment extends Fragment {
         mPostText = (EditText) _rootView.findViewById(R.id.etPostText_FUI);
         mShareButton = (Button) _rootView.findViewById(R.id.btnShare_FUI);
 
-        mShareButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = mPostText.getText().toString();
-                switch (mSocialID) {
-                    case Constants.FACEBOOK_ID:
-                        facebookShare(message, mSelectedImageUri);
-                }
-            }
-        });
         mChoosePhotoButton = (Button) _rootView.findViewById(R.id.btnChoosePhoto_FUI);
+
+        mLogOutButton = (Button) _rootView.findViewById(R.id.btnLogOut_FUI);
+    }
+
+    private void setUIListeners() {
         mChoosePhotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,8 +83,6 @@ public class UserInfoFragment extends Fragment {
                         "Select Picture"), SELECT_PICTURE);
             }
         });
-
-        mLogOutButton = (Button) _rootView.findViewById(R.id.btnLogOut_FUI);
         mLogOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,6 +100,16 @@ public class UserInfoFragment extends Fragment {
                 }
             }
         });
+        mShareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message = mPostText.getText().toString();
+                switch (mSocialID) {
+                    case Constants.FACEBOOK_ID:
+                        facebookShare(message, mSelectedImageUri);
+                }
+            }
+        });
     }
 
     @Override
@@ -117,18 +121,13 @@ public class UserInfoFragment extends Fragment {
             mSocialID = args.getInt(Constants.ARG_SOCIAL_ID);
             switch (mSocialID) {
                 case Constants.FACEBOOK_ID:
-                    facebookAccess((UserProfile)args.getParcelable(Constants.ARG_SOCIAL_USER));
+                    loadFacebookUser();
                     break;
                 case Constants.TWITER_ID:
-                    twitterAccess((UserProfile) args.getParcelable(Constants.ARG_SOCIAL_USER));
+                    loadTwitterUser();
                     break;
             }
         }
-    }
-
-    private void twitterAccess(UserProfile _userProfile) {
-        mUserInfoText.setText("Access from twitter \n" + _userProfile);
-        Picasso.with(getActivity()).load(_userProfile.getPictureUrl()).into(mUserPhoto);
     }
 
     @Override
@@ -147,8 +146,21 @@ public class UserInfoFragment extends Fragment {
         }
     }
 
-    private void facebookAccess(UserProfile _userProfile) {
-        mUserInfoText.setText("Access from facebook \n" + _userProfile);
+    private void showUserInfo(int _socialID, UserProfile _userProfile) {
+        String userInfo = "";
+        switch (_socialID) {
+            case Constants.FACEBOOK_ID:
+                userInfo = "Access from Facebook\n";
+                break;
+            case Constants.TWITER_ID:
+                userInfo = "Access from Twitter\n";
+                break;
+            case Constants.GOOGLE_ID:
+                userInfo = "Access from Google+\n";
+                break;
+        }
+        userInfo += _userProfile;
+        mUserInfoText.setText(userInfo);
         Picasso.with(getActivity()).load(_userProfile.getPictureUrl()).into(mUserPhoto);
     }
 
@@ -171,5 +183,18 @@ public class UserInfoFragment extends Fragment {
 //                    }
 //                })
 //                        .executeAsync();
+    }
+
+    public void loadFacebookUser() {
+        FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
+            @Override
+            public void onCompleted(UserProfile _profile) {
+                showUserInfo(Constants.FACEBOOK_ID, _profile);
+            }
+        }).executeAsync();
+    }
+
+    private void loadTwitterUser() {
+        showUserInfo(Constants.TWITER_ID, new UserProfile("name", "email", "date", null));
     }
 }
