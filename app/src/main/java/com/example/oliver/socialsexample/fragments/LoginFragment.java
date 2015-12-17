@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.oliver.socialsexample.Constants;
+import com.example.oliver.socialsexample.MainActivity;
 import com.example.oliver.socialsexample.R;
 import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
 import com.facebook.AccessToken;
@@ -18,6 +19,11 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterException;
@@ -30,8 +36,10 @@ import java.util.Arrays;
  * A placeholder fragment containing a simple view.
  */
 public class LoginFragment extends Fragment{
+    private static final int GOOGLE_SIGN_IN_REQUEST = 0;
     private LoginButton mFacebookLoginButton;
     private TwitterLoginButton mTwitterLoginButton;
+    private SignInButton mGoogleLoginButton;
     private CallbackManager callbackManager;
     private SocialsLoginListener mLoginListener;
 
@@ -57,6 +65,8 @@ public class LoginFragment extends Fragment{
         facebookInit(rootView);
 
         twitterInit(rootView);
+
+        googleInit(rootView);
 
         return rootView;
     }
@@ -106,11 +116,43 @@ public class LoginFragment extends Fragment{
         });
     }
 
+    private void googleInit(View _rootView) {
+
+        mGoogleLoginButton = (SignInButton) _rootView.findViewById(R.id.btnGoogleLogin_FL);
+        mGoogleLoginButton.setColorScheme(SignInButton.COLOR_DARK);
+        mGoogleLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(((MainActivity)getActivity()).getGoogleApiClient());
+                startActivityForResult(signInIntent, GOOGLE_SIGN_IN_REQUEST);
+            }
+        });
+
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("tag", "LoginFragment onResult request: " + requestCode + " result: " + resultCode + " data: " + data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
         mTwitterLoginButton.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GOOGLE_SIGN_IN_REQUEST) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            googleSignInResult(result);
+        }
     }
+
+    private void googleSignInResult(GoogleSignInResult result) {
+        Log.d("tag", "googleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            mLoginListener.onAccessSuccess(Constants.GOOGLE_ID);
+            // Signed in successfully, show authenticated UI.
+//            GoogleSignInAccount acct = result.getSignInAccount();
+//            Log.d("tag", "Granted scopes: " + acct.getGrantedScopes());
+//            Log.d("tag", "Google account Name: " + acct.getDisplayName() + ", email: " + acct.getEmail() + ", photo: " + acct.getPhotoUrl());
+        } else {
+            // Signed out, show unauthenticated UI.
+        }
+    }
+
 }

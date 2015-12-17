@@ -2,6 +2,7 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:paddingLeft="@dimen/activity_horizontal_margin"
               android:paddingRight="@dimen/activity_horizontal_margin"
               android:paddingTop="@dimen/activity_vertical_margin"
@@ -11,7 +12,7 @@
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/btnFacebookLogin_FL"
-        android:layout_width="210dp"
+        android:layout_width="220dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30dp"
@@ -20,8 +21,17 @@
 
     <com.twitter.sdk.android.core.identity.TwitterLoginButton
         android:id="@+id/btnTwitterLogin_FL"
-        android:layout_width="wrap_content"
+        android:layout_width="220dp"
         android:layout_height="30dp"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="30dp"/>
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btnGoogleLogin_FL"
+        android:layout_width="220dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        />
+
 
 </LinearLayout>

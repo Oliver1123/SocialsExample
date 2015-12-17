@@ -29,6 +29,7 @@ import com.facebook.login.LoginManager;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
+import com.github.scribejava.apis.GoogleApi;
 import com.github.scribejava.apis.LinkedInApi;
 import com.github.scribejava.apis.TwitterApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
@@ -38,6 +39,10 @@ import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.model.Verifier;
 import com.github.scribejava.core.oauth.OAuthService;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.Callback;
@@ -113,13 +118,15 @@ public class UserInfoFragment extends Fragment {
                 switch (mSocialID) {
                     case Constants.FACEBOOK_ID:
                         Log.d("tag", "UserInfoFragment Facebook logout");
-                        LoginManager.getInstance().logOut();
-                        ((MainActivity) getActivity()).showLoginFragment();
+                        facebookLogOut();
                         break;
                     case Constants.TWITTER_ID:
                         Log.d("tag", "UserInfoFragment Twitter logout");
-                        Twitter.getSessionManager().clearActiveSession();
-                        ((MainActivity) getActivity()).showLoginFragment();
+                        twitterLogOut();
+                        break;
+                    case Constants.GOOGLE_ID:
+                        Log.d("tag", "UserInfoFragment google logout");
+                        googleLogOut();
                         break;
                 }
             }
@@ -140,6 +147,29 @@ public class UserInfoFragment extends Fragment {
         });
     }
 
+    private void facebookLogOut() {
+        LoginManager.getInstance().logOut();
+        ((MainActivity) getActivity()).showLoginFragment();
+    }
+
+    private void twitterLogOut() {
+        Twitter.getSessionManager().clearActiveSession();
+        ((MainActivity) getActivity()).showLoginFragment();
+    }
+
+    private void googleLogOut() {
+        if (((MainActivity)getActivity()).getGoogleApiClient().isConnected()) {
+            Auth.GoogleSignInApi.signOut(((MainActivity) getActivity()).getGoogleApiClient())
+                    .setResultCallback(new ResultCallback<Status>() {
+                        @Override
+                        public void onResult(Status status) {
+                            Log.d("tag", "UserInfoFragment google logout status: " + status);
+                            ((MainActivity) getActivity()).showLoginFragment();
+                        }
+                    });
+        }
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -153,6 +183,9 @@ public class UserInfoFragment extends Fragment {
                     break;
                 case Constants.TWITTER_ID:
                     loadTwitterUser();
+                    break;
+                case Constants.GOOGLE_ID:
+                    loadGoogleUser();
                     break;
             }
         }
@@ -276,6 +309,10 @@ public class UserInfoFragment extends Fragment {
                 showUserInfo(Constants.TWITTER_ID, twitterUserProfile);
             }
         }).execute(twitter);
+    }
+
+    private void loadGoogleUser() {
+
     }
 
 

@@ -13,15 +13,20 @@ import com.example.oliver.socialsexample.interfaces.SocialsLoginListener;
 import com.facebook.AccessToken;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import io.fabric.sdk.android.Fabric;
 
-public class MainActivity extends AppCompatActivity implements SocialsLoginListener {
+public class MainActivity extends AppCompatActivity implements SocialsLoginListener{
 
 
     private FragmentTransaction fTrans;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +38,11 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
 
         facebookInitialize();
         twitterInitialize();
+        googleInitialize();
+    }
+
+    private void googleInitialize() {
+
     }
 
     private void twitterInitialize() {
@@ -110,13 +120,26 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
     @Override
     public void onAccessSuccess(int id) {
         Log.d("tag", "MainActivity onAccessSuccess id: " + id);
-        switch (id) {
-            case Constants.FACEBOOK_ID:
-                showUserInfoFragment(Constants.FACEBOOK_ID);
-                break;
-            case Constants.TWITTER_ID:
-                showUserInfoFragment(Constants.TWITTER_ID);
-                break;
+        showUserInfoFragment(id);
+    }
+
+    public GoogleApiClient getGoogleApiClient() {
+        if (mGoogleApiClient == null) {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .requestProfile()
+                    .build();
+
+             mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
+                        @Override
+                        public void onConnectionFailed(ConnectionResult _connectionResult) {
+                            Log.d("tag", "Google onConnection Failed");
+                        }
+                    }/* OnConnectionFailedListener */)
+                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                    .build();
         }
+        return mGoogleApiClient;
     }
 }
