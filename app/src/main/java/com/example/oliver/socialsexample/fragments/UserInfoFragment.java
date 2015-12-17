@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import com.example.oliver.socialsexample.Constants;
 import com.example.oliver.socialsexample.MainActivity;
 import com.example.oliver.socialsexample.R;
+import com.example.oliver.socialsexample.TwitterUserLoadTask;
 import com.example.oliver.socialsexample.interfaces.UserProfileCallback;
 import com.example.oliver.socialsexample.models.UserProfile;
 import com.example.oliver.socialsexample.requests.FacebookRequests;
@@ -27,8 +29,23 @@ import com.facebook.login.LoginManager;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
+import com.github.scribejava.apis.LinkedInApi;
+import com.github.scribejava.apis.TwitterApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Token;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.model.Verifier;
+import com.github.scribejava.core.oauth.OAuthService;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterApiClient;
+import com.twitter.sdk.android.core.TwitterCore;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 import com.twitter.sdk.android.tweetcomposer.TweetComposer;
 
 import twitter4j.TwitterException;
@@ -215,59 +232,80 @@ public class UserInfoFragment extends Fragment {
     }
 
     private void loadTwitterUser() {
-        String name = Twitter.getSessionManager().getActiveSession().getUserName();
-        Log.d("tag", "Name: " + name);
+//        scribe();
+        final UserProfile twitterUserProfile = new UserProfile();
 
-//        TwitterAuthClient authClient = new TwitterAuthClient();
-//
-//        TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
-//
-//        authClient.requestEmail(Twitter.getSessionManager().getActiveSession(), new Callback<String>() {
-//            @Override
-//            public void success(Result<String> result) {
-//                Log.d("tag", "getEmail " + result.data);
-//            }
-//
-//            @Override
-//            public void failure(TwitterException exception) {
-//                Log.d("tag", "getEmail failure ", exception);
-//            }
-//        });
-//        showUserInfo(Constants.TWITTER_ID, new UserProfile(name, "email", "date", null));
+        TwitterAuthClient authClient = new TwitterAuthClient();
 
-        twitter4j();
-    }
-    public void twitter4j() {
+        authClient.requestEmail(Twitter.getSessionManager().getActiveSession(), new Callback<String>() {
+            @Override
+            public void success(Result<String> result) {
+                Log.d("tag", "Twitter getUserEmail " + result.data);
+                twitterUserProfile.setName(result.data);
+                showUserInfo(Constants.TWITTER_ID, twitterUserProfile);
+            }
+
+            @Override
+            public void failure(com.twitter.sdk.android.core.TwitterException e) {
+                Log.d("tag", "Twitter getUserEmail failure ", e);
+                showUserInfo(Constants.TWITTER_ID, twitterUserProfile);
+            }
+        });
+
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey(getString(R.string.twitter_api_key))
                 .setOAuthConsumerSecret(getString(R.string.twitter_api_secret))
                 .setOAuthAccessToken(Twitter.getSessionManager().getActiveSession().getAuthToken().token)
                 .setOAuthAccessTokenSecret(Twitter.getSessionManager().getActiveSession().getAuthToken().secret);
+
         TwitterFactory tf = new TwitterFactory(cb.build());
         final twitter4j.Twitter twitter = tf.getInstance();
-        new TwitterUserLoader().execute(twitter);
-    }
-
-    class TwitterUserLoader extends AsyncTask<twitter4j.Twitter, Void, UserProfile> {
-        @Override
-        protected UserProfile doInBackground(twitter4j.Twitter... params) {
-            try {
-                User user = params[0].verifyCredentials();
-                UserProfile profile = new UserProfile();
-                profile.setPictureUrl(user.getBiggerProfileImageURL());
-                profile.setName(user.getName() + "\nScreen name: @" + user.getScreenName());
-                return  profile;
-            } catch (TwitterException e) {
-                e.printStackTrace();
+        new TwitterUserLoadTask(new Callback<User>() {
+            @Override
+            public void success(Result<User> _result) {
+                Log.d("tag", "Twitter getUser success ");
+                twitterUserProfile.setName(_result.data.getName() + "\nScreen name: @" + _result.data.getScreenName());
+                twitterUserProfile.setPictureUrl(_result.data.getBiggerProfileImageURL());
+                showUserInfo(Constants.TWITTER_ID, twitterUserProfile);
             }
-            return null;
-        }
 
-        @Override
-        protected void onPostExecute(UserProfile result) {
-            super.onPostExecute(result);
-            showUserInfo(Constants.TWITTER_ID, result);
-        }
+            @Override
+            public void failure(com.twitter.sdk.android.core.TwitterException e) {
+                Log.d("tag", "Twitter getUser failure ", e);
+                showUserInfo(Constants.TWITTER_ID, twitterUserProfile);
+            }
+        }).execute(twitter);
     }
+
+
+
+    private void scribe() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                OAuthService service = new ServiceBuilder()
+                        .provider(TwitterApi.class)
+                        .apiKey(getString(R.string.twitter_api_key))
+                        .apiSecret(getString(R.string.twitter_api_secret))
+                        .build();
+
+                Token requestToken = service.getRequestToken();
+                Log.d("tag", "requestToken: " +requestToken);
+                String authUrl = service.getAuthorizationUrl(requestToken);
+                Log.d("tag", "authUrl: " + authUrl);
+
+                Verifier v = new Verifier("verifier from user"); // ????
+                Token accessToken = service.getAccessToken(requestToken, v); // the requestToken you had from step 2
+//
+//                OAuthRequest request = new OAuthRequest(Verb.GET, "http://api.twitter.com/1/account/verify_credentials.xml", service);
+//                service.signRequest(accessToken, request); // the access token from step 4
+//                Response response = request.send();
+//                Log.d("tag", response.getBody());
+            }
+        }).start();
+
+    }
+
+
 }
