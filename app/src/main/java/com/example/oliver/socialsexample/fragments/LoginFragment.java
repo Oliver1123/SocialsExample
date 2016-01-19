@@ -22,8 +22,10 @@ import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterException;
@@ -120,6 +122,7 @@ public class LoginFragment extends Fragment{
 
         mGoogleLoginButton = (SignInButton) _rootView.findViewById(R.id.btnGoogleLogin_FL);
         mGoogleLoginButton.setColorScheme(SignInButton.COLOR_DARK);
+        mGoogleLoginButton.setScopes(new Scope[]{new Scope(Scopes.PLUS_LOGIN), new Scope(Scopes.PLUS_ME)});
         mGoogleLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

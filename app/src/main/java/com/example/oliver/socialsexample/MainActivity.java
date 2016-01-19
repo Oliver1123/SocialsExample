@@ -16,13 +16,16 @@ import com.facebook.appevents.AppEventsLogger;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.plus.Plus;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 
 import io.fabric.sdk.android.Fabric;
 
-public class MainActivity extends AppCompatActivity implements SocialsLoginListener{
+public class MainActivity extends AppCompatActivity implements SocialsLoginListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 
     private FragmentTransaction fTrans;
@@ -110,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "MainActivity onResult request: " + requestCode + " result: " + resultCode + " data: " + data.getExtras());
+        Log.d("tag", "MainActivity onResult request: " + requestCode + " result: " + resultCode + " data: " + data);
         Fragment fragment = getSupportFragmentManager().findFragmentByTag("LoginFragment");
         if (fragment != null) {
             fragment.onActivityResult(requestCode, resultCode, data);
@@ -126,8 +129,9 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
     public GoogleApiClient getGoogleApiClient() {
         if (mGoogleApiClient == null) {
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestProfile()
+//                    .requestEmail()
+//                    .requestProfile()
+                    .requestScopes(new Scope(Scopes.PLUS_ME), new Scope(Scopes.PLUS_LOGIN), new Scope(Scopes.EMAIL))
                     .build();
 
              mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -138,8 +142,32 @@ public class MainActivity extends AppCompatActivity implements SocialsLoginListe
                         }
                     }/* OnConnectionFailedListener */)
                     .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                     .addApi(Plus.API)
                     .build();
+
+//            mGoogleApiClient = new MyGoogleApiClient.Builder(this)
+//                    .addConnectionCallbacks(this)
+//                    .addOnConnectionFailedListener(this)
+//                    .addApi(Plus.API)
+//                    .addScope(new Scope(Scopes.PLUS_ME))
+//                    .addScope(new Scope(Scopes.PLUS_LOGIN))
+//                    .build();
         }
         return mGoogleApiClient;
+    }
+
+    @Override
+    public void onConnected(Bundle _bundle) {
+        Log.d("tag", "Google connected");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("tag", "Google connection suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult _connectionResult) {
+        Log.d("tag", "Google connection failed");
     }
 }

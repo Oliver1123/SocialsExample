@@ -43,6 +43,9 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.PlusShare;
+import com.google.android.gms.plus.model.people.Person;
 import com.squareup.picasso.Picasso;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.Callback;
@@ -142,6 +145,8 @@ public class UserInfoFragment extends Fragment {
                     case Constants.TWITTER_ID:
                         twitterShare(message, mSelectedImageUri);
                         break;
+                    case Constants.GOOGLE_ID:
+                        googleShare(message, mSelectedImageUri);
                 }
             }
         });
@@ -158,7 +163,8 @@ public class UserInfoFragment extends Fragment {
     }
 
     private void googleLogOut() {
-        if (((MainActivity)getActivity()).getGoogleApiClient().isConnected()) {
+//        Log.d("tag", "is connected: " + ((MainActivity)getActivity()).getGoogleApiClient().isConnected());
+//        if (((MainActivity)getActivity()).getGoogleApiClient().isConnected()) {
             Auth.GoogleSignInApi.signOut(((MainActivity) getActivity()).getGoogleApiClient())
                     .setResultCallback(new ResultCallback<Status>() {
                         @Override
@@ -167,7 +173,7 @@ public class UserInfoFragment extends Fragment {
                             ((MainActivity) getActivity()).showLoginFragment();
                         }
                     });
-        }
+//        }
     }
 
     @Override
@@ -194,7 +200,7 @@ public class UserInfoFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("tag", "UserInfoFragment onActivityResult data: " + data.getExtras());
+        Log.d("tag", "UserInfoFragment onActivityResult data: " + data);
         switch (requestCode) {
             case SELECT_PICTURE:
                 if (resultCode == Activity.RESULT_OK) {
@@ -255,6 +261,20 @@ public class UserInfoFragment extends Fragment {
         builder.show();
     }
 
+    private void googleShare(String _message, Uri _selectedImageUri) {
+        String mime = getActivity().getContentResolver().getType(_selectedImageUri);
+        Log.d("tag", "Share mime: " + mime);
+        Intent shareIntent = new PlusShare.Builder(getActivity())
+                .setType(mime)
+                .setText(_message)
+                .setStream(_selectedImageUri)
+//                .setContentUrl(_selectedImageUri)
+                .getIntent();
+
+        startActivityForResult(shareIntent, 0);
+
+    }
+
     public void loadFacebookUser() {
         FacebookRequests.infoRequest(AccessToken.getCurrentAccessToken(), new UserProfileCallback() {
             @Override
@@ -313,6 +333,10 @@ public class UserInfoFragment extends Fragment {
 
     private void loadGoogleUser() {
 
+            Person currentPerson = Plus.PeopleApi.getCurrentPerson(((MainActivity) getActivity()).getGoogleApiClient());
+            UserProfile profile = new UserProfile(currentPerson.getName().toString(), "",
+                    currentPerson.getBirthday(), currentPerson.getImage().toString());
+        showUserInfo(Constants.GOOGLE_ID, profile);
     }
 
 

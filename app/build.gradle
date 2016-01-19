@@ -49,4 +49,5 @@ dependencies {
     compile 'com.github.scribejava:scribejava-apis:2.0'
     compile 'com.github.scribejava:scribejava-core:2.0'
     compile 'org.twitter4j:twitter4j-core:4.0.4'
+    compile 'com.jdroidframework:jdroid-android-google-plus:0.9.2'
 }
